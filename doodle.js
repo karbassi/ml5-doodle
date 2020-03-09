@@ -67,66 +67,70 @@ function strokeGenerated(error, instruction) {
     if (error) {
         // print an error if one shows up
         console.error(error);
-    } else {
-        // expose our new instruction so the draw loop can see it
-        strokeInstruction = instruction;
-        // console.log(strokeInstruction);
+        return;
     }
+
+    // expose our new instruction so the draw loop can see it
+    strokeInstruction = instruction;
+    // console.log(strokeInstruction);
 }
 
 //--------------------------
 
 // the constantly running loop
 function draw() {
+
+    // If there is no strokeInstruction, early exit
+    if (strokeInstruction == null) {
+        return;
+    }
+
     // since p5 draws (0,0) in the middle but our model
     // assumes (0,0) at the bottom left...
     // we shift everything up and to the right
     translate(width / 2, height / 2);
 
-    // check if there is a new instruction to draw...
-    if (strokeInstruction != null) {
-        // where should the pen move to?
-        // the multiplication is for scaling
-        const newX = x + strokeInstruction.dx * 0.2;
-        const newY = y + strokeInstruction.dy * 0.2;
+    // where should the pen move to?
+    // the multiplication is for scaling
+    const newX = x + strokeInstruction.dx * 0.2;
+    const newY = y + strokeInstruction.dy * 0.2;
 
-        // check if we should draw a line...
-        if (penState == 'down') {
-            // set thickness of line
-            strokeWeight(1);
-            // draw a line!
-            line(x, y, newX, newY);
-        }
+    // check if we should draw a line...
+    if (penState == 'down') {
+        // set thickness of line
+        strokeWeight(1);
+        // draw a line!
+        line(x, y, newX, newY);
+    }
 
-        // save next pen up- or down-ness
-        penState = strokeInstruction.pen;
+    // save next pen up- or down-ness
+    penState = strokeInstruction.pen;
 
-        // ensure we do not redraw the same line
-        strokeInstruction = null;
+    // ensure we do not redraw the same line
+    strokeInstruction = null;
 
-        // save end of last instruction as new pen location
-        x = newX;
-        y = newY;
+    // save end of last instruction as new pen location
+    x = newX;
+    y = newY;
 
-        // if the model does not say our sketch is finished
-        if (penState !== 'end') {
-            //generate next stroke instruction
-            model.generate(strokeGenerated);
-        }
-        // we're done with this sketch
-        else {
-            // console.log('drawing complete');
-            // select new random stroke color
-            stroke(random(255), 0, random(255));
+    // if the model does not say our sketch is finished
+    if (penState !== 'end') {
+        //generate next stroke instruction
+        model.generate(strokeGenerated);
+    }
+    // we're done with this sketch
+    else {
+        // console.log('drawing complete');
+        // select new random stroke color
+        stroke(random(255), 0, random(255));
 
-            // move pen to new location
-            createNewDoodle();
+        // move pen to new location
+        createNewDoodle();
 
-            // reset the model
-            model.reset();
+        // reset the model
+        model.reset();
 
-            // generate new instruction
-            model.generate(strokeGenerated);
-        }
+        // generate new instruction
+        model.generate(strokeGenerated);
     }
 }
